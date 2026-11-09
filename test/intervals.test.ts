@@ -10,6 +10,9 @@ const interval: fc.Arbitrary<Interval> = fc
   .map(([start, len]): Interval => [start, start + len]);
 const intervalList = fc.array(interval, { maxLength: 10 });
 
+// Obviously-correct reference: is point p inside any interval?
+const covers = (xs: readonly Interval[], p: number) => xs.some(([s, e]) => s <= p && p <= e);
+
 describe('mergeIntervals', () => {
   // Pattern: invariant. Every input interval lies inside some output interval.
   it('every input interval lies inside some output interval', () => {
@@ -29,6 +32,16 @@ describe('mergeIntervals', () => {
         const out = mergeIntervals(xs);
         for (const [s, e] of out) expect(s).toBeLessThanOrEqual(e);
         for (let i = 0; i + 1 < out.length; i++) expect(out[i][1]).toBeLessThan(out[i + 1][0]);
+      }),
+    );
+  });
+
+  // Pattern: differential. Input and output cover the same points, including half-integers.
+  it('covers exactly the same points as the input', () => {
+    fc.assert(
+      fc.property(intervalList, xs => {
+        const out = mergeIntervals(xs);
+        for (let p = -14; p <= 20; p += 0.5) expect(covers(out, p)).toBe(covers(xs, p));
       }),
     );
   });
