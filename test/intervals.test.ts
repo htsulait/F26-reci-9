@@ -86,6 +86,21 @@ describe('mergeIntervals', () => {
     );
   });
 
+  // Pattern: conditional. If the input is already disjoint with gaps, the output is the sorted input.
+  it('leaves disjoint, non-touching intervals as they are (sorted)', () => {
+    const disjointShuffled = disjointSorted.chain(sorted =>
+      fc.tuple(
+        fc.constant(sorted),
+        fc.shuffledSubarray(sorted, { minLength: sorted.length, maxLength: sorted.length }),
+      ),
+    );
+    fc.assert(
+      fc.property(disjointShuffled, ([sorted, shuffled]) => {
+        expect(mergeIntervals(shuffled)).toEqual(sorted);
+      }),
+    );
+  });
+
   // Pattern: invariant. The input array and its intervals are not modified, even when the output is.
   it('does not modify or alias the input', () => {
     fc.assert(
