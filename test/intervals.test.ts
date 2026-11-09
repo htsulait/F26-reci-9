@@ -57,4 +57,27 @@ describe('mergeIntervals', () => {
       }),
     );
   });
+
+  // Pattern: algebraic. Merging is idempotent: merge(merge(xs)) equals merge(xs).
+  it('merging an already-merged list changes nothing', () => {
+    fc.assert(
+      fc.property(intervalList, xs => {
+        const once = mergeIntervals(xs);
+        expect(mergeIntervals(once)).toEqual(once);
+      }),
+    );
+  });
+
+  // Pattern: invariant. The input array and its intervals are not modified, even when the output is.
+  it('does not modify or alias the input', () => {
+    fc.assert(
+      fc.property(intervalList, xs => {
+        const snapshot = structuredClone(xs);
+        const out = mergeIntervals(xs);
+        expect(xs).toEqual(snapshot);
+        for (const iv of out) iv[1] += 100; // mutate output; input must not change
+        expect(xs).toEqual(snapshot);
+      }),
+    );
+  });
 });
