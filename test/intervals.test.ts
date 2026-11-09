@@ -2,17 +2,13 @@ import { describe, expect, it } from 'vitest';
 import fc from 'fast-check';
 import { mergeIntervals, type Interval } from '../src/intervals';
 
-// Read the spec in src/intervals/mergeIntervals.ts, then check your progress
-// with `npm run mutants:intervals`.
-//
-// Label every property with its pattern, on the line above its `it(`:
-//   // Pattern: invariant. The output is sorted.
-// (invariant, algebraic, metamorphic, differential, or conditional)
-
-// A first attempt at a generator. It has a problem: run the tests and read
-// the counterexample.
-const interval: fc.Arbitrary<Interval> = fc.tuple(fc.integer(), fc.integer());
-const intervalList = fc.array(interval);
+// Construct valid intervals directly: start <= end by building end = start + length.
+// A small range makes shared endpoints, duplicates and adjacent integers common;
+// it includes negatives and multi-digit numbers so ordering bugs show up.
+const interval: fc.Arbitrary<Interval> = fc
+  .tuple(fc.integer({ min: -12, max: 12 }), fc.nat(6))
+  .map(([start, len]): Interval => [start, start + len]);
+const intervalList = fc.array(interval, { maxLength: 10 });
 
 describe('mergeIntervals', () => {
   // Pattern: invariant. Every input interval lies inside some output interval.
@@ -25,7 +21,4 @@ describe('mergeIntervals', () => {
       }),
     );
   });
-
-  // Add your properties here. Aim for at least one of each pattern:
-  // invariant, algebraic, metamorphic, differential, conditional.
 });
