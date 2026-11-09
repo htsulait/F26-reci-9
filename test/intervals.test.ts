@@ -10,6 +10,24 @@ const interval: fc.Arbitrary<Interval> = fc
   .map(([start, len]): Interval => [start, start + len]);
 const intervalList = fc.array(interval, { maxLength: 10 });
 
+// Already-disjoint, non-touching intervals in sorted order: each one starts
+// at least 1 after the previous one ends (so there is a real gap).
+const disjointSorted: fc.Arbitrary<Interval[]> = fc
+  .tuple(
+    fc.integer({ min: -15, max: 15 }),
+    fc.array(fc.tuple(fc.integer({ min: 1, max: 3 }), fc.nat(4)), { maxLength: 8 }),
+  )
+  .map(([first, steps]) => {
+    const out: Interval[] = [];
+    let cursor = first;
+    for (const [gap, len] of steps) {
+      const start = out.length === 0 ? cursor : cursor + gap;
+      out.push([start, start + len]);
+      cursor = start + len;
+    }
+    return out;
+  });
+
 // Obviously-correct reference: is point p inside any interval?
 const covers = (xs: readonly Interval[], p: number) => xs.some(([s, e]) => s <= p && p <= e);
 
