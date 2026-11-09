@@ -45,4 +45,16 @@ describe('mergeIntervals', () => {
       }),
     );
   });
+
+  // Pattern: metamorphic. Reordering the input does not change the output.
+  it('is independent of input order', () => {
+    const listAndShuffle = intervalList.chain(xs =>
+      fc.tuple(fc.constant(xs), fc.shuffledSubarray(xs, { minLength: xs.length, maxLength: xs.length })),
+    );
+    fc.assert(
+      fc.property(listAndShuffle, ([xs, shuffled]) => {
+        expect(mergeIntervals(shuffled)).toEqual(mergeIntervals(xs));
+      }),
+    );
+  });
 });
