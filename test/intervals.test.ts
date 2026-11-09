@@ -21,4 +21,15 @@ describe('mergeIntervals', () => {
       }),
     );
   });
+
+  // Pattern: invariant. The output is sorted, valid, and consecutive intervals neither overlap nor touch.
+  it('output is sorted with strict gaps between intervals', () => {
+    fc.assert(
+      fc.property(intervalList, xs => {
+        const out = mergeIntervals(xs);
+        for (const [s, e] of out) expect(s).toBeLessThanOrEqual(e);
+        for (let i = 0; i + 1 < out.length; i++) expect(out[i][1]).toBeLessThan(out[i + 1][0]);
+      }),
+    );
+  });
 });
